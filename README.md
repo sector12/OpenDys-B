@@ -97,5 +97,5 @@ manual cleanup.
   notices are retained, as the OFL requires. Redistribution here — including on a
   public repo — is permitted provided `OFL.txt` travels with the fonts; keep them
   together.
-- **Scripts** (`*.ps1`) — internal deployment tooling for Lutterworth College;
+- **Scripts** (`*.ps1`) — internal deployment tooling for Sector12;
   provided as-is. The OFL applies only to the font files.
