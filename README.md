@@ -6,7 +6,7 @@ dyslexia-friendly and brand fonts to a managed Windows estate.
 It does two jobs:
 
 1. **Hosts the OpenDyslexic fonts** — both the unmodified classic build (`OpenDyslexic`,
-   `OpenDyslexicAlta`, `OpenDyslexicMono`) and `OpenDys B`, a renamed, OFL-compliant
+   `OpenDyslexicAlta`, `OpenDyslexicMono`) and `OpenDys 3`, a renamed, OFL-compliant
    build of the newer OpenDyslexic 3 redesign — served as raw files the detection
    script pulls on demand, so no runtime dependency on DaFont.
 2. **Holds the Intune Remediations scripts** (`Detect-*` / `Remediate-*`) that
@@ -19,7 +19,7 @@ It does two jobs:
 | `Detect-CustomFonts.ps1` | Intune **detection** script. The font list lives here — this is the only file you edit to add/change a font. Exit 1 = something needs installing. |
 | `Remediate-CustomFonts.ps1` | Intune **remediation** script. Downloads and installs whatever detection staged. No font list — never needs editing to add a font. |
 | `OpenDyslexic-*.otf`, `OpenDyslexicAlta-*.otf`, `OpenDyslexicMono-Regular.otf` | The classic OpenDyslexic build (unmodified, keeps its original name), mirrored from the author's repo `antijingoist/open-dyslexic`. |
-| `OpenDysB-Regular.otf`, `-Bold`, `-Italic`, `-BoldItalic` | The `OpenDys B` font (internal family name `OpenDys B`), the renamed OpenDyslexic 3 redesign. |
+| `OpenDys3-Regular.otf`, `-Bold`, `-Italic`, `-BoldItalic` | The `OpenDys 3` font (internal family name `OpenDys 3`), the renamed OpenDyslexic 3 redesign. |
 | `OFL.txt` | SIL Open Font License 1.1 — **must** stay beside the font files (see Licensing). |
 
 ## The fonts deployed
@@ -31,9 +31,9 @@ The detection list currently ships four families:
 | **Lato** | google-webfonts-helper zip (all weights, one URL) |
 | **Josefin Sans** | official `google/fonts` repo (variable upright + italic) |
 | **OpenDyslexic** | this repo — the unmodified classic build (keeps its original name; also brings OpenDyslexicAlta + OpenDyslexicMono). Mirrored from `antijingoist/open-dyslexic`; DaFont left commented as a fallback in the config. |
-| **OpenDys B** | this repo — the renamed OpenDyslexic 3 redesign |
+| **OpenDys 3** | this repo — the renamed OpenDyslexic 3 redesign |
 
-`OpenDyslexic` (classic) and `OpenDys B` (redesign) have **different internal
+`OpenDyslexic` (classic) and `OpenDys 3` (redesign) have **different internal
 family names**, so both appear as separate, selectable entries in the font menu
 with no shadowing.
 
@@ -79,7 +79,7 @@ never an HTML page.
    `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\CustomFontDeployment.log`
    (tagged `[DETECT]` / `[REMEDIATE]`).
 
-> **The `OpenDyslexic` and `OpenDys B` raw URLs point at the `main` branch.** They
+> **The `OpenDyslexic` and `OpenDys 3` raw URLs point at the `main` branch.** They
 > only resolve once the font files are on `main`, so merge this branch to `main`
 > before the first device run. Lato and Josefin Sans download from external
 > sources and are unaffected.
@@ -87,7 +87,7 @@ never an HTML page.
 Because devices that ran an earlier script have no recorded fingerprint, the
 first run of this package reconciles every font automatically — machines that
 picked up the GitHub redesign as "OpenDyslexic" get it force-replaced with the
-classic build under that name, and pick up `OpenDys B` as a separate entry. No
+classic build under that name, and pick up `OpenDys 3` as a separate entry. No
 manual cleanup.
 
 ## Licensing
@@ -101,8 +101,9 @@ Redistribution here — including on a public repo — is permitted provided
   `OpenDyslexicMono-Regular.otf`) — **unmodified originals**, mirrored from the
   author's repo. They legitimately carry the reserved name because they are the
   unchanged font.
-- **`OpenDysB-*.otf`** — a **Modified Version**: its internal family name is
-  `OpenDys B` (it does **not** carry the reserved name), and the original
+- **`OpenDys3-*.otf`** — a **Modified Version**: its internal family name is
+  `OpenDys 3` (it does **not** carry the reserved name; note "OpenDyslexic 3"
+  *would* be disallowed, as it contains the reserved name), and the original
   copyright and license notices are retained, as the OFL requires for a
   modified build.
 - **Scripts** (`*.ps1`) — internal deployment tooling for Sector12;

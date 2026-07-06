@@ -71,18 +71,20 @@ $FontRegistry = @(
            # 'https://dl.dafont.com/dl/?f=open_dyslexic'   # fallback: zip straight from DaFont
        ) }
 
-    # OpenDys B - the newer redesign (GitHub 0.99), renamed for OFL compliance
-    # ("OpenDyslexic" is a Reserved Font Name, so a modified build must not use it).
-    # Hosted in this repo (sector12/OpenDys-B) alongside OFL.txt. The four files
-    # must exist on the branch named in the URLs below (main) before the first
-    # device run - see README.md.
-    @{ FamilyName = 'OpenDys B'
+    # OpenDys 3 - the newer redesign (GitHub 0.99; the author's "OpenDyslexic 3"),
+    # renamed for OFL compliance. "OpenDyslexic" is a Reserved Font Name, so a
+    # modified build must not use it OR any name containing it (e.g. "OpenDyslexic
+    # 3" is NOT allowed without written permission from the author) - hence the
+    # compliant "OpenDys 3". Hosted in this repo (sector12/OpenDys-B) alongside
+    # OFL.txt. The four files must exist on the branch named in the URLs below
+    # (main) before the first device run - see README.md.
+    @{ FamilyName = 'OpenDys 3'
        Version    = '1'
        Urls       = @(
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDysB-Regular.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDysB-Bold.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDysB-Italic.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDysB-BoldItalic.otf'
+           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-Regular.otf'
+           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-Bold.otf'
+           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-Italic.otf'
+           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-BoldItalic.otf'
        ) }
 )
 # =======================================================================
