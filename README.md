@@ -1,4 +1,4 @@
-# OpenDys-B
+# Custom Font Deployment
 
 Font-hosting repo and Microsoft Intune **Remediations** package for deploying
 dyslexia-friendly and brand fonts to a managed Windows estate.

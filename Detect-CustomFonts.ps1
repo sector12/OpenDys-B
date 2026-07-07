@@ -59,15 +59,15 @@ $FontRegistry = @(
     @{ FamilyName = 'OpenDyslexic'
        Version    = '1'
        Urls       = @(
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexic-Regular.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexic-Bold.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexic-Italic.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexic-BoldItalic.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexicAlta-Regular.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexicAlta-Bold.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexicAlta-Italic.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexicAlta-BoldItalic.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDyslexicMono-Regular.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexic-Regular.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexic-Bold.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexic-Italic.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexic-BoldItalic.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexicAlta-Regular.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexicAlta-Bold.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexicAlta-Italic.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexicAlta-BoldItalic.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDyslexicMono-Regular.otf'
            # 'https://dl.dafont.com/dl/?f=open_dyslexic'   # fallback: zip straight from DaFont
        ) }
 
@@ -75,16 +75,16 @@ $FontRegistry = @(
     # renamed for OFL compliance. "OpenDyslexic" is a Reserved Font Name, so a
     # modified build must not use it OR any name containing it (e.g. "OpenDyslexic
     # 3" is NOT allowed without written permission from the author) - hence the
-    # compliant "OpenDys 3". Hosted in this repo (sector12/OpenDys-B) alongside
+    # compliant "OpenDys 3". Hosted in this repo (sector12/custom-font-deployment) alongside
     # OFL.txt. The four files must exist on the branch named in the URLs below
     # (main) before the first device run - see README.md.
     @{ FamilyName = 'OpenDys 3'
        Version    = '1'
        Urls       = @(
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-Regular.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-Bold.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-Italic.otf'
-           'https://raw.githubusercontent.com/sector12/OpenDys-B/main/OpenDys3-BoldItalic.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDys3-Regular.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDys3-Bold.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDys3-Italic.otf'
+           'https://raw.githubusercontent.com/sector12/custom-font-deployment/main/OpenDys3-BoldItalic.otf'
        ) }
 )
 # =======================================================================
