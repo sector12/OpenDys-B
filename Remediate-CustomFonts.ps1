@@ -23,13 +23,17 @@ $StageRoot  = 'HKLM:\SOFTWARE\CustomFontInstaller\Pending'
 $StateRoot  = 'HKLM:\SOFTWARE\CustomFontInstaller\Installed'
 $FontRegKey = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
 $FontsDir   = Join-Path $env:windir 'Fonts'
+$RebootStage= Join-Path $env:ProgramData 'CustomFontInstaller\PendingReboot'  # holds files to swap in on reboot when a font is in use
 $LogPath    = Join-Path $env:ProgramData 'Microsoft\IntuneManagementExtension\Logs\CustomFontDeployment.log'
 $UserAgent  = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'   # some hosts (DaFont) reject requests with no UA
 
 function Write-Log {
     param([string]$Message)
     $line = '[{0}] [REMEDIATE] {1}' -f (Get-Date -Format 'u'), $Message
-    Write-Output $line
+    # Write-Host (not Write-Output): Write-Output emits $line into the success
+    # stream, which pollutes the return value of any function that calls Write-Log
+    # (e.g. Install-FontFile), corrupting the recorded 'Files' state list.
+    Write-Host $line
     try {
         $dir = Split-Path $LogPath
         if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
@@ -53,6 +57,8 @@ namespace FontNative {
         public static extern int AddFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
         [DllImport("gdi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool RemoveFontResourceEx(string lpFileName, uint fl, IntPtr pdv);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool MoveFileEx(string lpExistingFileName, string lpNewFileName, uint dwFlags);
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern IntPtr SendMessageTimeout(
             IntPtr hWnd, uint Msg, IntPtr wParam, string lParam,
@@ -109,25 +115,56 @@ function Install-FontFile {
     param([string]$SourcePath)
     $fileName = [System.IO.Path]::GetFileName($SourcePath)
     $dest     = Join-Path $FontsDir $fileName
-    Copy-Item -LiteralPath $SourcePath -Destination $dest -Force            # overwrite = force-replace
-    New-ItemProperty -Path $FontRegKey -Name (Get-RegNameFor $fileName) -Value $fileName -PropertyType String -Force | Out-Null
-    [FontNative.Win]::AddFontResourceEx($dest, 0, [IntPtr]::Zero) | Out-Null
-    Write-Log ("Installed: {0}" -f $fileName)
-    return $fileName
+
+    # Release our own GDI registration on the existing file before overwriting it;
+    # otherwise replacing a font that is currently mapped fails with
+    # "cannot be performed on a file with a user-mapped section open".
+    if (Test-Path -LiteralPath $dest) {
+        try { [FontNative.Win]::RemoveFontResourceEx($dest, 0, [IntPtr]::Zero) | Out-Null } catch { }
+    }
+
+    try {
+        Copy-Item -LiteralPath $SourcePath -Destination $dest -Force -ErrorAction Stop
+        New-ItemProperty -Path $FontRegKey -Name (Get-RegNameFor $fileName) -Value $fileName -PropertyType String -Force | Out-Null
+        [FontNative.Win]::AddFontResourceEx($dest, 0, [IntPtr]::Zero) | Out-Null
+        Write-Log ("Installed: {0}" -f $fileName)
+    }
+    catch {
+        # Still locked (mapped by a running app or the Font Cache service). Stage
+        # the new file in a persistent location and let Windows swap it in on the
+        # next reboot, instead of throwing and aborting the whole font family.
+        try {
+            if (-not (Test-Path -LiteralPath $RebootStage)) { New-Item -ItemType Directory -Path $RebootStage -Force | Out-Null }
+            $persist = Join-Path $RebootStage $fileName
+            Copy-Item -LiteralPath $SourcePath -Destination $persist -Force
+            # MOVEFILE_REPLACE_EXISTING (0x1) | MOVEFILE_DELAY_UNTIL_REBOOT (0x4)
+            [FontNative.Win]::MoveFileEx($persist, $dest, ([uint32]0x1 -bor [uint32]0x4)) | Out-Null
+            New-ItemProperty -Path $FontRegKey -Name (Get-RegNameFor $fileName) -Value $fileName -PropertyType String -Force | Out-Null
+            Write-Log ("In use - staged to replace on next reboot: {0}" -f $fileName)
+        } catch {
+            Write-Log ("FAILED to install '{0}': {1}" -f $fileName, $_.Exception.Message)
+        }
+    }
 }
 
 function Remove-FontFile {
     param([string]$FileName)
-    $dest = Join-Path $FontsDir $FileName
-    # -Name is wildcard-matched by the registry provider, so escape []*? (e.g. the
-    # Josefin Sans "[wght]" variable-font names) or the entry silently won't remove.
-    $regName = [System.Management.Automation.WildcardPattern]::Escape((Get-RegNameFor $FileName))
-    try { [FontNative.Win]::RemoveFontResourceEx($dest, 0, [IntPtr]::Zero) | Out-Null } catch { }
-    try { Remove-ItemProperty -Path $FontRegKey -Name $regName -Force -ErrorAction SilentlyContinue } catch { }
-    # -LiteralPath so "[wght]" is treated literally, not as a wildcard (which makes
-    # Test-Path enumerate the special C:\Windows\Fonts folder and throw DirIOError).
-    if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Force -ErrorAction SilentlyContinue }
-    Write-Log ("Removed old file: {0}" -f $FileName)
+    # Whole body guarded: a corrupted/legacy orphan entry (e.g. one with invalid
+    # path characters) must never throw and abort the family's reinstall.
+    try {
+        $dest = Join-Path $FontsDir $FileName
+        # -Name is wildcard-matched by the registry provider, so escape []*? (e.g. the
+        # Josefin Sans "[wght]" variable-font names) or the entry silently won't remove.
+        $regName = [System.Management.Automation.WildcardPattern]::Escape((Get-RegNameFor $FileName))
+        try { [FontNative.Win]::RemoveFontResourceEx($dest, 0, [IntPtr]::Zero) | Out-Null } catch { }
+        try { Remove-ItemProperty -Path $FontRegKey -Name $regName -Force -ErrorAction SilentlyContinue } catch { }
+        # -LiteralPath so "[wght]" is treated literally, not as a wildcard (which makes
+        # Test-Path enumerate the special C:\Windows\Fonts folder and throw DirIOError).
+        if (Test-Path -LiteralPath $dest) { Remove-Item -LiteralPath $dest -Force -ErrorAction SilentlyContinue }
+        Write-Log ("Removed old file: {0}" -f $FileName)
+    } catch {
+        Write-Log ("Skipped orphan entry: {0}" -f $FileName)
+    }
 }
 
 Write-Log '--- Remediation start ---'
@@ -181,17 +218,17 @@ foreach ($item in $staged) {
                 }
             }
 
-            # 3. Force-install the new set.
-            $installedNames = @()
-            foreach ($f in $newFiles) { $installedNames += (Install-FontFile -SourcePath $f); $installedAny = $true }
+            # 3. Force-install the new set. Install-FontFile logs its own outcome;
+            #    do NOT capture its output - $newNames is the authoritative file list.
+            foreach ($f in $newFiles) { Install-FontFile -SourcePath $f; $installedAny = $true }
 
             # 4. Record state so detection sees this font as current.
             New-Item -Path $stateKey -Force | Out-Null
-            New-ItemProperty -Path $stateKey -Name 'Fingerprint' -Value $fingerprint                -PropertyType String      -Force | Out-Null
-            New-ItemProperty -Path $stateKey -Name 'Files'       -Value ([string[]]$installedNames) -PropertyType MultiString -Force | Out-Null
+            New-ItemProperty -Path $stateKey -Name 'Fingerprint' -Value $fingerprint           -PropertyType String      -Force | Out-Null
+            New-ItemProperty -Path $stateKey -Name 'Files'       -Value ([string[]]$newNames)  -PropertyType MultiString -Force | Out-Null
 
             Remove-Item -Path $pk -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Log ("Completed '{0}' ({1} file(s))." -f $familyName, $installedNames.Count)
+            Write-Log ("Completed '{0}' ({1} file(s))." -f $familyName, $newNames.Count)
         }
         else {
             Write-Log ("'{0}' left staged for retry (a download failed)." -f $familyName)

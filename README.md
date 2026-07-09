@@ -46,7 +46,9 @@ filenames. It re-stages a font whenever the fingerprint changes (you bumped
 downloads each URL (source-agnostic — handles a `.zip` or a single `.ttf`/`.otf`,
 and rejects HTML error pages), removes any orphaned files from the previous
 build, force-installs the new set machine-wide (`AddFontResourceEx` +
-`WM_FONTCHANGE`, no reboot), and records the new state.
+`WM_FONTCHANGE`, normally no reboot), and records the new state. If a font file
+being replaced is currently in use (mapped by an app or the Font Cache service),
+that file is staged and swapped in on the next reboot rather than failing.
 
 Changing a source URL or bumping `Version` is therefore an automatic, clean
 force-replace across every device on the next cycle.
